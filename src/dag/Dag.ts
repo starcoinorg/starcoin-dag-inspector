@@ -30,8 +30,6 @@ export default class Dag {
     private blockClickedListener: (blockInformation: Block) => void;
     private appConfigChangedListener: (appConfig: AppConfig) => void;
 
-    private readonly blockByHashs: { [hash: string]: Block } = {};
-
     constructor() {
         this.appConfig = getDefaultAppConfig();
         this.currentTickFunction = async () => {
@@ -199,7 +197,7 @@ export default class Dag {
             if (height || height === 0) {
                 this.targetHeight = height;
                 this.currentTickFunction = this.trackTargetHeight;
-                console.log("resolveTickFunction | Exited, height || height === 0, height：{}", height);
+                console.log("resolveTickFunction | Exited, height || height === 0, height: " + height);
                 return;
             }
         }
@@ -210,7 +208,7 @@ export default class Dag {
             if (daaScore || daaScore === 0) {
                 this.targetDAAScore = daaScore;
                 this.currentTickFunction = this.trackTargetDAAScore;
-                console.log("resolveTickFunction | Exited, daaScore || daaScore === 0, daaScore：{}", daaScore);
+                console.log("resolveTickFunction | Exited, daaScore || daaScore === 0, daaScore: " + daaScore);
                 return;
             }
         }
@@ -219,7 +217,7 @@ export default class Dag {
         if (hash) {
             this.targetHash = hash.toLowerCase();
             this.currentTickFunction = this.trackTargetHash;
-            console.log("resolveTickFunction | Exited, hash not null, targetHash：{}", this.targetHash);
+            console.log("resolveTickFunction | Exited, hash not null, targetHash " + this.targetHash);
             return;
         }
 
@@ -253,9 +251,9 @@ export default class Dag {
         // Exit early if the track function or the target
         // height changed while we were busy fetching data
         if (this.currentTickFunction !== this.trackTargetHeight || this.targetHeight !== targetHeight) {
-            console.log("trackTargetHeight | Exited, this.currentTickFunction !== this.trackTargetHeight || this.targetHeight !== targetHeight, this.targetHeight: {}, targetHeight: {}",
-                this.targetHeight,
-                targetHeight
+            console.log("trackTargetHeight | Exited, this.currentTickFunction !== this.trackTargetHeight || this.targetHeight !== targetHeight, " +
+                " this.targetHeight " + this.targetHeight +
+                " targetHeight " + targetHeight
             );
             return;
         }
@@ -286,15 +284,17 @@ export default class Dag {
         // Exit early if the track function or the target
         // height changed while we were busy fetching data
         if (this.currentTickFunction !== this.trackTargetDAAScore || this.targetDAAScore !== targetDAAScore) {
-            console.log("blocksAndEdgesAndHeightGroups | Exited, this.currentTickFunction !== this.trackTargetDAAScore || this.targetDAAScore !== targetDAAScore, this.targetDAAScore: {}, targetDAAScore: {}",
-                this.targetDAAScore, targetDAAScore);
+            console.log("blocksAndEdgesAndHeightGroups | Exited, this.currentTickFunction !== this.trackTargetDAAScore || this.targetDAAScore !== targetDAAScore," +
+                " this.targetDAAScore: " + this.targetDAAScore +
+                " targetDAAScore " + targetDAAScore
+            );
             return;
         }
 
         this.timelineContainer!.setBlocksAndEdgesAndHeightGroups(blocksAndEdgesAndHeightGroups);
         this.timelineContainer!.setTargetDAAScore(targetDAAScore);
 
-        console.log("blocksAndEdgesAndHeightGroups | Exited, targetDAAScore: {}", targetDAAScore);
+        console.log("blocksAndEdgesAndHeightGroups | Exited, targetDAAScore: " + targetDAAScore);
     }
 
     private trackTargetHash = async () => {
@@ -327,9 +327,9 @@ export default class Dag {
         // Exit early if the track function or the target
         // hash changed while we were busy fetching data
         if (this.currentTickFunction !== this.trackTargetHash || this.targetHash !== targetHash) {
-            console.log("trackTargetHash | Exited, this.currentTickFunction !== this.trackTargetHash || this.targetHash !== targetHash, this.targetHash: {}, targetHash: {}",
-                this.targetHash,
-                targetHash,
+            console.log("trackTargetHash | Exited, this.currentTickFunction !== this.trackTargetHash || this.targetHash !== targetHash" +
+                " this.targetHash: " + this.targetHash +
+                " targetHash: " + targetHash,
             );
             return;
         }
@@ -355,7 +355,7 @@ export default class Dag {
         const blockInformation = await this.buildBlockInformation(targetBlock);
         this.blockInformationChangedListener(blockInformation);
 
-        console.log("trackTargetHash | exited, targetBlock.height: {}", targetBlock.height);
+        console.log("trackTargetHash | exited, targetBlock.height: " + targetBlock.height);
     }
 
     private trackHead = async () => {
@@ -394,7 +394,7 @@ export default class Dag {
         this.timelineContainer!.setTargetHeight(targetHeight, blocksAndEdgesAndHeightGroups);
         this.timelineContainer!.setBlocksAndEdgesAndHeightGroups(blocksAndEdgesAndHeightGroups);
 
-        console.log("trackHead | Exited, targetHeight: {}", targetHeight);
+        console.log("trackHead | Exited, targetHeight: " + targetHeight);
     }
 
     // private cacheBlockHashes = (blocks: Block[]) => {
@@ -419,7 +419,7 @@ export default class Dag {
     }
 
     private buildBlockInformation = async (block: Block): Promise<BlockInformation> => {
-        console.log("buildBlockInformation | Entered, block: {}", block);
+        console.log("buildBlockInformation | Entered, block " + block);
 
         let notFoundIds: number[] = [];
 
@@ -502,7 +502,7 @@ export default class Dag {
     }
 
     private handleBlockClicked = (block: Block) => {
-        console.log("handleBlockClicked | Entered, block: {}", block);
+        console.log("handleBlockClicked | Entered, block " + JSON.stringify(block));
         this.blockClickedListener(block);
         this.timelineContainer!.setTargetHeight(block.height);
         this.blockClickedListener(block);

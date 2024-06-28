@@ -387,10 +387,6 @@ export default class TimelineContainer extends PIXI.Container {
         const blockSize = this.calculateBlockSize(rendererHeight);
         const marginX = this.calculateMarginX(blockSize);
 
-        console.log("recalculateEdgeSpritePositions | " +
-            "this.edgeKeysToEdges : " + JSON.stringify(this.edgeKeysToEdges) +
-            " this.heightKeysToHeightGroups: " + JSON.stringify(this.heightKeysToHeightGroups),
-        );
         Object.entries(this.edgeKeysToEdges)
             .forEach(([edgeKey, edge]) => {
                 const edgeSprite = this.edgeKeysToEdgeSprites[edgeKey];
