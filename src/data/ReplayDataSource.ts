@@ -94,7 +94,7 @@ export default class ReplayDataSource implements DataSource {
             // id: blockId,
             blockHash: blockHash,
             timestamp: this.currentReplayBlockIndex * this.replayData.blockInterval,
-            parentHashs: nextReplayBlock.parentIds,
+            parentIds: nextReplayBlock.parentIds,
             height: height,
             daaScore: height,
             heightGroupIndex: heightGroupIndex,

@@ -89,14 +89,15 @@ export default class TimelineContainer extends PIXI.Container {
         for (let block of blocks) {
             const key = this.buildBlockKeyByHash(block.blockHash);
             this.blockKeysToBlocks[key] = block;
+            console.log("setBlocksAndEdgesAndHeightGroups | Add block key for block, key: " + key + ", block: " + JSON.stringify(block));
         }
 
         // Update the edges-by-keys map with the new edges
         this.edgeKeysToEdges = {};
         for (let edge of edges) {
             const key = this.buildEdgeKey(edge);
-            console.log("setBlocksAndEdgesAndHeightGroups | Add edge key for edge, key: " + key + ", edge: " + JSON.stringify(edge));
             this.edgeKeysToEdges[key] = edge;
+            console.log("setBlocksAndEdgesAndHeightGroups | Add edge key for edge, key: " + key + ", edge: " + JSON.stringify(edge));
         }
 
         // Update the height-groups-by-keys map with the new height groups

@@ -4,7 +4,7 @@ export type Block = {
     // id: number,
     blockHash: string,
     timestamp: number,
-    parentHashs: string[],
+    parentIds: string[],
     height: number,
     daaScore: number,
     heightGroupIndex: number,
@@ -16,7 +16,7 @@ export type Block = {
 };
 
 export function areBlocksEqual(left: Block, right: Block): boolean {
-    if (left.parentHashs.length !== right.parentHashs.length) {
+    if (left.parentIds.length !== right.parentIds.length) {
         return false;
     }
     if (left.mergeSetRedIds.length !== right.mergeSetRedIds.length) {
@@ -25,8 +25,8 @@ export function areBlocksEqual(left: Block, right: Block): boolean {
     if (left.mergeSetBlueIds.length !== right.mergeSetBlueIds.length) {
         return false;
     }
-    for (let i = 0; i < left.parentHashs.length; i++) {
-        if (left.parentHashs[i] !== right.parentHashs[i]) {
+    for (let i = 0; i < left.parentIds.length; i++) {
+        if (left.parentIds[i] !== right.parentIds[i]) {
             return false;
         }
     }

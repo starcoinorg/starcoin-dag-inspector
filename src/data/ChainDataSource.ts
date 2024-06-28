@@ -45,7 +45,7 @@ export default class ChainDataSource implements DataSource {
             // id: nextBlockId,
             blockHash: nextBlockHash,
             timestamp: nextBlockHeight * this.blockInterval,
-            parentHashs: [lastBlock.blockHash],
+            parentIds: [lastBlock.blockHash],
             height: nextBlockHeight,
             daaScore: nextBlockHeight,
             heightGroupIndex: 0,
@@ -144,7 +144,7 @@ export default class ChainDataSource implements DataSource {
         {
             blockHash: "00000000",
             timestamp: 0,
-            parentHashs: [],
+            parentIds: [],
             height: 0,
             daaScore: 0,
             heightGroupIndex: 0,

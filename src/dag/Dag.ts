@@ -423,7 +423,7 @@ export default class Dag {
 
         let notFoundIds: number[] = [];
 
-        let [parentHashes, notFoundParentIds] = this.getCachedBlockHashes(block.parentHashs);
+        let [parentHashes, notFoundParentIds] = this.getCachedBlockHashes(block.parentIds);
         notFoundIds = notFoundIds.concat(notFoundParentIds);
 
         let selectedParentHash = null;
