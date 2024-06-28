@@ -9,7 +9,7 @@ import {
     BlocksAndEdgesAndHeightGroups,
     getHeightGroupDAAScore,
     getDAAScoreGroupHeight,
-    getBlockChildIds
+    getBlockChildHashs
 } from "../model/BlocksAndEdgesAndHeightGroups";
 import {Edge} from "../model/Edge";
 import {HeightGroup} from "../model/HeightGroup";
@@ -82,12 +82,12 @@ export default class TimelineContainer extends PIXI.Container {
         const blocks = blocksAndEdgesAndHeightGroups.blocks;
         const edges = blocksAndEdgesAndHeightGroups.edges;
         const heightGroups = blocksAndEdgesAndHeightGroups.heightGroups;
-        const targetBlockKey = targetBlock ? this.buildBlockKey(targetBlock.id) : null;
+        const targetBlockKey = targetBlock ? this.buildBlockKeyByHash(targetBlock.blockHash) : null;
 
         // Update the blocks-by-ids map with the new blocks
         this.blockKeysToBlocks = {};
         for (let block of blocks) {
-            const key = this.buildBlockKey(block.id);
+            const key = this.buildBlockKeyByHash(block.blockHash);
             this.blockKeysToBlocks[key] = block;
         }
 
@@ -95,6 +95,7 @@ export default class TimelineContainer extends PIXI.Container {
         this.edgeKeysToEdges = {};
         for (let edge of edges) {
             const key = this.buildEdgeKey(edge);
+            console.log("setBlocksAndEdgesAndHeightGroups | Add edge key for edge, key: " + key + ", edge: " + JSON.stringify(edge));
             this.edgeKeysToEdges[key] = edge;
         }
 
@@ -103,6 +104,10 @@ export default class TimelineContainer extends PIXI.Container {
         for (let heightGroup of heightGroups) {
             const key = this.buildHeightKey(heightGroup.height);
             this.heightKeysToHeightGroups[key] = heightGroup;
+            console.log("setBlocksAndEdgesAndHeightGroups | add height group into heightKeysToHeightGroups map: " +
+                "key: " + key + "," +
+                "heightGroup: " + JSON.stringify(heightGroup)
+            );
         }
 
         // Remove no-longer relevant height sprites
@@ -137,7 +142,7 @@ export default class TimelineContainer extends PIXI.Container {
 
         // Update existing block sprites
         for (let block of blocks) {
-            const key = this.buildBlockKey(block.id);
+            const key = this.buildBlockKeyByHash(block.blockHash);
             if (this.blockKeysToBlockSprites[key]) {
                 const blockSprite = this.blockKeysToBlockSprites[key];
                 this.assignBlockToBlockSprite(blockSprite, block, targetBlockKey);
@@ -174,7 +179,7 @@ export default class TimelineContainer extends PIXI.Container {
 
         // Add new block sprites
         for (let block of blocks) {
-            const key = this.buildBlockKey(block.id);
+            const key = this.buildBlockKeyByHash(block.blockHash);
             if (!this.blockKeysToBlockSprites[key]) {
                 // Add the block to the blockSprite-by-ID map
                 const blockSprite = new BlockSprite(this.application, block);
@@ -205,7 +210,7 @@ export default class TimelineContainer extends PIXI.Container {
             const edgeKey = this.buildEdgeKey(edge);
             if (!this.edgeKeysToEdgeSprites[edgeKey]) {
                 // Add the edge to the edgeSprite-by-key map
-                const edgeSprite = new EdgeSprite(this.application, edge.fromBlockId, edge.toBlockId);
+                const edgeSprite = new EdgeSprite(this.application, edge.fromBlockHash, edge.toBlockHash);
                 this.assignEdgeToEdgeSprite(edgeSprite, edge, targetBlockKey);
                 this.edgeKeysToEdgeSprites[edgeKey] = edgeSprite;
 
@@ -229,18 +234,18 @@ export default class TimelineContainer extends PIXI.Container {
             return;
         }
 
-        const blockKey = this.buildBlockKey(block.id);
+        const blockKey = this.buildBlockKeyByHash(block.blockHash);
         const targetBlock = this.blockKeysToBlocks[targetBlockKey];
 
-        const [childIds, ] = getBlockChildIds(this.currentBlocksAndEdgesAndHeightGroups!, targetBlock);
-        const childBlockKeys = childIds.map(blockId => this.buildBlockKey(blockId));
+        const [childIds, ] = getBlockChildHashs(this.currentBlocksAndEdgesAndHeightGroups!, targetBlock);
+        const childBlockKeys = childIds.map(blockHash => this.buildBlockKeyByHash(blockHash));
         if (childBlockKeys.indexOf(blockKey) >= 0) {
             blockSprite.setHighlighted(true, false, block.color);
             return;
         }
 
-        const mergeSetRedBlockKeys = targetBlock.mergeSetRedIds.map(blockId => this.buildBlockKey(blockId));
-        const mergeSetBlueBlockKeys = targetBlock.mergeSetBlueIds.map(blockId => this.buildBlockKey(blockId));
+        const mergeSetRedBlockKeys = targetBlock.mergeSetRedIds.map(blockHash => this.buildBlockKeyByHash(blockHash));
+        const mergeSetBlueBlockKeys = targetBlock.mergeSetBlueIds.map(blockHash => this.buildBlockKeyByHash(blockHash));
 
         const mergeSetBlockKeys = mergeSetRedBlockKeys.concat(mergeSetBlueBlockKeys);
         if (mergeSetBlockKeys.indexOf(blockKey) < 0 && blockKey !== targetBlockKey) {
@@ -260,21 +265,21 @@ export default class TimelineContainer extends PIXI.Container {
     }
 
     private assignEdgeToEdgeSprite = (edgeSprite: EdgeSprite, edge: Edge, targetBlockKey: string | null) => {
-        const toBlock = this.blockKeysToBlocks[edge.toBlockId];
-        const fromBlock = this.blockKeysToBlocks[edge.fromBlockId];
+        const toBlock = this.blockKeysToBlocks[edge.toBlockHash];
+        const fromBlock = this.blockKeysToBlocks[edge.fromBlockHash];
         let isInVirtualSelectedParentChain = false;
         let isHighlightedParent = false;
         let isHighlightedChild = false;
         let isSelectedParent = false;
         if (fromBlock) {
-            isSelectedParent = (fromBlock.selectedParentId === edge.toBlockId);
+            isSelectedParent = (fromBlock.selectedParentHash === edge.toBlockHash);
             if (toBlock) {
                 isInVirtualSelectedParentChain = fromBlock.isInVirtualSelectedParentChain
                     && toBlock.isInVirtualSelectedParentChain;
             }
         }
-        isHighlightedParent = (this.buildBlockKey(edge.fromBlockId) === targetBlockKey);
-        isHighlightedChild = (this.buildBlockKey(edge.toBlockId) === targetBlockKey);
+        isHighlightedParent = (this.buildBlockKeyByHash(edge.fromBlockHash) === targetBlockKey);
+        isHighlightedChild = (this.buildBlockKeyByHash(edge.toBlockHash) === targetBlockKey);
 
         edgeSprite.setFullState(isInVirtualSelectedParentChain, isHighlightedParent, isHighlightedChild, isSelectedParent);
     }
@@ -291,7 +296,7 @@ export default class TimelineContainer extends PIXI.Container {
     }
 
     setTargetBlock = (targetBlock: Block | null) => {
-        const targetBlockKey = targetBlock ? this.buildBlockKey(targetBlock.id) : null;
+        const targetBlockKey = targetBlock ? this.buildBlockKeyByHash(targetBlock.blockHash) : null;
         for (let blockKey in this.blockKeysToBlocks) {
             const block = this.blockKeysToBlocks[blockKey];
             const blockSprite = this.blockKeysToBlockSprites[blockKey];
@@ -304,12 +309,20 @@ export default class TimelineContainer extends PIXI.Container {
         }
     }
 
-    private buildBlockKey = (blockId: number): string => {
-        return `${blockId}`;
+    // private buildBlockKeyByHash = (blockId: number): string => {
+    //     return `${blockId}`;
+    // }
+
+    private buildBlockKeyByHash = (blockHash: string): string => {
+        return blockHash
     }
 
     private buildEdgeKey = (edge: Edge): string => {
-        return `${edge.fromBlockId}-${edge.toBlockId}`;
+        return `${edge.fromBlockHash}-${edge.toBlockHash}`;
+    }
+
+    private buildEdgeKeyWithHash = (edge: Edge): string => {
+        return `${edge.fromBlockHash}-${edge.toBlockHash}`;
     }
 
     private buildHeightKey = (height: number): string => {
@@ -374,9 +387,18 @@ export default class TimelineContainer extends PIXI.Container {
         const blockSize = this.calculateBlockSize(rendererHeight);
         const marginX = this.calculateMarginX(blockSize);
 
+        console.log("recalculateEdgeSpritePositions | " +
+            "this.edgeKeysToEdges : " + JSON.stringify(this.edgeKeysToEdges) +
+            " this.heightKeysToHeightGroups: " + JSON.stringify(this.heightKeysToHeightGroups),
+        );
         Object.entries(this.edgeKeysToEdges)
             .forEach(([edgeKey, edge]) => {
                 const edgeSprite = this.edgeKeysToEdgeSprites[edgeKey];
+
+                // console.log("recalculateEdgeSpritePositions | Object.entries(this.edgeKeysToEdges.forEach" +
+                //     " edgeKey: " + JSON.stringify(edgeKey) +
+                //     " edge:" + JSON.stringify(edge)
+                // );
 
                 const fromHeightKey = this.buildHeightKey(edge.fromHeight);
                 const fromHeightGroup = this.heightKeysToHeightGroups[fromHeightKey];
@@ -384,6 +406,10 @@ export default class TimelineContainer extends PIXI.Container {
 
                 const toHeightKey = this.buildHeightKey(edge.toHeight);
                 const toHeightGroup = this.heightKeysToHeightGroups[toHeightKey];
+                console.log("recalculateEdgeSpritePositions | fromHeightGroup " +
+                    " toHeightKey: " + toHeightKey +
+                    " toHeightGroup:" + JSON.stringify(toHeightGroup)
+                );
                 const toY = this.calculateBlockSpriteY(edge.toHeightGroupIndex, toHeightGroup.size, rendererHeight, blockSize);
 
                 const fromX = this.calculateBlockSpriteX(edge.fromHeight, blockSize, marginX);
@@ -401,7 +427,7 @@ export default class TimelineContainer extends PIXI.Container {
                     previousFromY = edgeSprite.y;
                 } else {
                     // Attempt to get the previous toY from the toBlock
-                    const toBlockKey = this.buildBlockKey(edge.toBlockId);
+                    const toBlockKey = this.buildBlockKeyByHash(edge.toBlockHash);
                     const toBlockSprite = this.blockKeysToBlockSprites[toBlockKey];
 
                     // toY either not available or not interesting, so don't bother

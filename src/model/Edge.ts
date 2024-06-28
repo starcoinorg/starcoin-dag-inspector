@@ -1,6 +1,6 @@
 export type Edge = {
-    fromBlockId: number,
-    toBlockId: number,
+    fromBlockHash: string,
+    toBlockHash: string,
     fromHeight: number,
     toHeight: number,
     fromHeightGroupIndex: number,
@@ -8,8 +8,8 @@ export type Edge = {
 }
 
 export function areEdgesEqual(left: Edge, right: Edge): boolean {
-    return left.fromBlockId === right.fromBlockId
-        && left.toBlockId === right.toBlockId
+    return left.fromBlockHash === right.fromBlockHash
+        && left.toBlockHash === right.toBlockHash
         && left.fromHeight === right.fromHeight
         && left.toHeight === right.toHeight
         && left.fromHeightGroupIndex === right.fromHeightGroupIndex

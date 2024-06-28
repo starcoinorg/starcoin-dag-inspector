@@ -35,8 +35,8 @@ export default class EdgeSprite extends PIXI.Container {
     private static readonly definitionMap: { [definitionKey: string]: EdgeGraphicsDefinition } = EdgeSprite.initializeDefinitionMap();
 
     private readonly application: PIXI.Application;
-    private readonly fromBlockId: number;
-    private readonly toBlockId: number;
+    private readonly fromBlockHash: string;
+    private readonly toBlockHash: string;
 
     private vectorX: number = 0;
     private vectorY: number = 0;
@@ -54,12 +54,12 @@ export default class EdgeSprite extends PIXI.Container {
     private graphicsMap: { [definitionKey: string]: PIXI.Graphics } = {};
     private baseDefinition?: EdgeGraphicsDefinition;
 
-    constructor(application: PIXI.Application, fromBlockId: number, toBlockId: number) {
+    constructor(application: PIXI.Application, fromBlockHash: string, toBlockHash: string) {
         super();
 
         this.application = application;
-        this.fromBlockId = fromBlockId;
-        this.toBlockId = toBlockId;
+        this.fromBlockHash = fromBlockHash;
+        this.toBlockHash = toBlockHash;
 
         for (let definitionKey in EdgeSprite.definitionMap) {
             this.graphicsMap[definitionKey] = this.addNewGraphics();
@@ -277,11 +277,11 @@ export default class EdgeSprite extends PIXI.Container {
         }
     }
 
-    getFromBlockId = (): number => {
-        return this.fromBlockId;
+    getFromBlockHash = (): string => {
+        return this.fromBlockHash;
     }
 
-    getToBlockId = (): number => {
-        return this.toBlockId;
+    getToBlockHash = (): string => {
+        return this.toBlockHash;
     }
 }

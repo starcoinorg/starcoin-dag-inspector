@@ -16,6 +16,16 @@ export default class ChainDataSource implements DataSource {
         this.createNextBlockAndReschedule();
     }
 
+    private generateRandomString(length: number): string {
+        const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        let result = '';
+        for (let i = 0; i < length; i++) {
+            const randomIndex = Math.floor(Math.random() * chars.length);
+            result += chars[randomIndex];
+        }
+        return result;
+    }
+
     private createNextBlockAndReschedule = () => {
         this.createNextBlock();
         window.setTimeout(this.createNextBlockAndReschedule, this.blockInterval)
@@ -23,38 +33,45 @@ export default class ChainDataSource implements DataSource {
 
     private createNextBlock = () => {
         const lastBlock = this.blocks[this.blocks.length - 1];
-        const lastBlockId = lastBlock.id;
-        const nextBlockId = lastBlockId + 1;
-        const nextBlockHash = `${nextBlockId}`.repeat(8);
+        //const lastBlockId = lastBlock.id;
+        // const nextBlockId = lastBlockId + 1;
+        // const nextBlockHash = //`${nextBlockId}`.repeat(8);
+        const lastBlockHash = lastBlock.blockHash;
+        const lastBlockHeight = lastBlock.height;
+        const nextBlockHash = this.generateRandomString(10);
+        const nextBlockHeight = lastBlock.height + 1;
 
         this.blocks.push({
-            id: nextBlockId,
+            // id: nextBlockId,
             blockHash: nextBlockHash,
-            timestamp: nextBlockId * this.blockInterval,
-            parentIds: [lastBlockId],
-            height: nextBlockId,
-            daaScore: nextBlockId,
+            timestamp: nextBlockHeight * this.blockInterval,
+            parentHashs: [lastBlock.blockHash],
+            height: nextBlockHeight,
+            daaScore: nextBlockHeight,
             heightGroupIndex: 0,
-            selectedParentId: lastBlockId,
+            selectedParentHash: lastBlock.blockHash,
             color: BlockColorConst.BLUE,
             isInVirtualSelectedParentChain: true,
             mergeSetRedIds: [],
-            mergeSetBlueIds: [lastBlockId],
+            mergeSetBlueIds: [lastBlockHash],
         });
+
         this.edges.push({
-            fromBlockId: nextBlockId,
-            toBlockId: lastBlockId,
-            fromHeight: nextBlockId,
-            toHeight: lastBlockId,
+            fromBlockHash: nextBlockHash,
+            toBlockHash: lastBlockHash,
+            fromHeight: nextBlockHeight,
+            toHeight: lastBlockHeight,
             fromHeightGroupIndex: 0,
             toHeightGroupIndex: 0,
         });
         this.heightGroups.push({
-            height: nextBlockId,
+            height: nextBlockHeight,
             size: 1,
         });
-        this.blockHashesByIds[nextBlockId] = nextBlockHash;
-        this.blockIdsByHashes[nextBlockHash] = nextBlockId;
+        // this.blockHashesByIds[nextBlockId] = nextBlockHash;
+        // this.blockIdsByHashes[nextBlockHash] = nextBlockId;
+        this.blockHashesByDAAScore[nextBlockHeight] = nextBlockHash;
+        this.blockHeightsByHashes[nextBlockHash] = nextBlockHeight;
     }
 
     getTickIntervalInMilliseconds = (): number => {
@@ -80,18 +97,24 @@ export default class ChainDataSource implements DataSource {
     };
 
     getBlockHash = async (targetHash: string, heightDifference: number): Promise<BlocksAndEdgesAndHeightGroups | void> => {
-        const targetId = this.blockIdsByHashes[targetHash];
-        const startHeight = targetId - heightDifference;
-        const endHeight = targetId + heightDifference;
-
+        // const targetId = this.blockIdsByHashes[targetHash];
+        // const startHeight = targetId - heightDifference;
+        // const endHeight = targetId + heightDifference;
+        const targetHeight = this.blockHeightsByHashes[targetHash];
+        const startHeight = targetHeight - heightDifference;
+        const endHeight = targetHeight + heightDifference;
         return this.getBlocksBetweenHeights(startHeight, endHeight);
     };
 
     getBlockDAAScore = async (targetDAAScore: number, heightDifference: number): Promise<BlocksAndEdgesAndHeightGroups | void> => {
-        const targetId = this.blockIdsByDAAScores[targetDAAScore];
-        const startHeight = targetId - heightDifference;
-        const endHeight = targetId + heightDifference;
+        // const targetId = this.blockHashesByDAAScore[targetDAAScore];
+        // const startHeight = targetId - heightDifference;
+        // const endHeight = targetId + heightDifference;
 
+        const targetHash = this.blockHashesByDAAScore[targetDAAScore];
+        const targetHeight = this.blockHeightsByHashes[targetHash];
+        const startHeight = targetHeight - heightDifference;
+        const endHeight = targetHeight + heightDifference;
         return this.getBlocksBetweenHeights(startHeight, endHeight);
     };
 
@@ -99,17 +122,18 @@ export default class ChainDataSource implements DataSource {
         return this.getBlocksBetweenHeights(this.blocks.length - heightDifference, this.blocks.length);
     };
 
-    getBlockHashesByIds = async (blockIdsString: string): Promise<BlockHashById[] | void> => {
-        const blockIdStrings = blockIdsString.split(",");
-        const blockHashesByIds: BlockHashById[] = [];
-        for (let blockIdString of blockIdStrings) {
-            const blockId = parseInt(blockIdString);
-            blockHashesByIds.push({
-                id: blockId,
-                hash: this.blockHashesByIds[blockId],
-            });
-        }
-        return blockHashesByIds;
+    getBlockHashesByIds = async (_blockIdsString: string): Promise<BlockHashById[] | void> => {
+        // const blockIdStrings = blockIdsString.split(",");
+        // const blockHashesByIds: BlockHashById[] = [];
+        // for (let blockIdString of blockIdStrings) {
+        //     const blockId = parseInt(blockIdString);
+        //     blockHashesByIds.push({
+        //         id: blockId,
+        //         hash: this.blockHashesByIds[blockId],
+        //     });
+        // }
+        // return blockHashesByIds;
+        return [];
     };
 
     getAppConfig = async (): Promise<AppConfig | void> => {
@@ -118,14 +142,13 @@ export default class ChainDataSource implements DataSource {
 
     private blocks: Block[] = [
         {
-            id: 0,
             blockHash: "00000000",
             timestamp: 0,
-            parentIds: [],
+            parentHashs: [],
             height: 0,
             daaScore: 0,
             heightGroupIndex: 0,
-            selectedParentId: null,
+            selectedParentHash: null,
             color: BlockColorConst.BLUE,
             isInVirtualSelectedParentChain: true,
             mergeSetRedIds: [],
@@ -142,15 +165,19 @@ export default class ChainDataSource implements DataSource {
         },
     ];
 
-    private blockHashesByIds: { [id: number]: string } = {
-        0: "00000000",
+    // private blockHashesByIds: { [id: number]: string } = {
+    //     0: "00000000",
+    // };
+    //
+    // private blockIdsByHashes: { [hash: string]: number } = {
+    //     "00000000": 0,
+    // };
+
+    private blockHashesByDAAScore: { [daaScore: number]: string } = {
+        1: "00000000",
     };
 
-    private blockIdsByHashes: { [hash: string]: number } = {
+    private blockHeightsByHashes: { [hash: string]: number} = {
         "00000000": 0,
-    };
-
-    private blockIdsByDAAScores: { [daaScore: number]: number } = {
-        1: 1,
-    };
+    }
 };

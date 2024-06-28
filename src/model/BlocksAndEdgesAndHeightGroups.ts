@@ -55,21 +55,21 @@ function getMaxHeight(data: BlocksAndEdgesAndHeightGroups): number {
 }
 
 export function getHeightGroupDAAScore(data: BlocksAndEdgesAndHeightGroups, height: number): number {
-  var score = 0;
-  for (let block of data.blocks) {
-    if (block.height === height) {
-        if (block.isInVirtualSelectedParentChain || score === 0) {
-          score = block.daaScore;
+    var score = 0;
+    for (let block of data.blocks) {
+        if (block.height === height) {
+            if (block.isInVirtualSelectedParentChain || score === 0) {
+                score = block.daaScore;
+            }
         }
     }
-  }
-  return score;
+    return score;
 }
 
 export function getDAAScoreGroupHeight(data: BlocksAndEdgesAndHeightGroups, daaScore: number): number {
     const minHeight = getMinHeight(data);
     const maxHeight = getMaxHeight(data);
-    for (let i =  minHeight; i <= maxHeight; i++) {
+    for (let i = minHeight; i <= maxHeight; i++) {
         if (getHeightGroupDAAScore(data, i) >= daaScore) {
             return i;
         }
@@ -77,10 +77,38 @@ export function getDAAScoreGroupHeight(data: BlocksAndEdgesAndHeightGroups, daaS
     return maxHeight;
 }
 
-function getBlockById(data: BlocksAndEdgesAndHeightGroups, blockId: number): Block | null {
+// function getBlockById(data: BlocksAndEdgesAndHeightGroups, blockId: number): Block | null {
+//     if (data) {
+//         for (let block of data.blocks) {
+//             if (block.id === blockId) {
+//                 return block;
+//             }
+//         }
+//     }
+//     return null;
+// }
+
+// export function getBlockChildIds(data: BlocksAndEdgesAndHeightGroups, block: Block): [number[], number | null] {
+//     let children: number[] = [];
+//     let selectedChild = null;
+//     if (data) {
+//         for (let edge of data.edges) {
+//             if (edge.toBlockHash === block.id) {
+//                 children = children.concat(edge.fromBlockHash);
+//                 const childBlock = getBlockById(data, edge.fromBlockHash);
+//                 if (childBlock && childBlock.isInVirtualSelectedParentChain) {
+//                     selectedChild = childBlock.id;
+//                 }
+//             }
+//         }
+//     }
+//     return [children, selectedChild];
+// }
+
+function getBlockByHash(data: BlocksAndEdgesAndHeightGroups, blockHash: string): Block | null {
     if (data) {
         for (let block of data.blocks) {
-            if (block.id === blockId) {
+            if (block.blockHash === blockHash) {
                 return block;
             }
         }
@@ -88,16 +116,16 @@ function getBlockById(data: BlocksAndEdgesAndHeightGroups, blockId: number): Blo
     return null;
 }
 
-export function getBlockChildIds(data: BlocksAndEdgesAndHeightGroups, block: Block): [number[], number | null] {
-    let children: number[] = [];
+export function getBlockChildHashs(data: BlocksAndEdgesAndHeightGroups, block: Block): [string[], string | null] {
+    let children: string[] = [];
     let selectedChild = null;
-    if (data) { 
+    if (data) {
         for (let edge of data.edges) {
-            if (edge.toBlockId === block.id) {
-                children = children.concat(edge.fromBlockId);
-                const childBlock = getBlockById(data, edge.fromBlockId);
+            if (edge.toBlockHash === block.blockHash) {
+                children = children.concat(edge.fromBlockHash);
+                const childBlock = getBlockByHash(data, edge.fromBlockHash);
                 if (childBlock && childBlock.isInVirtualSelectedParentChain) {
-                    selectedChild = childBlock.id;
+                    selectedChild = childBlock.blockHash;
                 }
             }
         }

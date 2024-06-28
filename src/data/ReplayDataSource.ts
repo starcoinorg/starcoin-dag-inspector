@@ -13,13 +13,14 @@ export type ReplayData = {
 };
 
 export type ReplayDataBlock = {
-    id: number,
-    parentIds: number[],
-    selectedParentId: number | null,
+    // id: number,
+    blockHash: string,
+    parentIds: string[],
+    selectedParentHash: string | null,
     color: BlockColor,
     isInVirtualSelectedParentChain: boolean,
-    mergeSetRedIds: number[],
-    mergeSetBlueIds: number[],
+    mergeSetRedIds: string[],
+    mergeSetBlueIds: string[],
 };
 
 type DatumAtHeight = {
@@ -35,11 +36,11 @@ export default class ReplayDataSource implements DataSource {
 
     private currentReplayBlockIndex: number = 0;
 
-    private blockIdsToHeights: { [id: number]: number } = {};
+    private blockHashsToHeights: { [hash: string]: number } = {};
     private dataAtHeight: { [height: number]: DatumAtHeight } = {};
-    private blockHashesByIds: { [id: number]: string } = {};
-    private blockIdsByHashes: { [hash: string]: number } = {};
-    private blockIdsByDAAScores: { [daaScore: number]: number } = {};
+    //private blockHashesByIds: { [id: number]: string } = {};
+    // private blockIdsByHashes: { [hash: string]: number } = {};
+    private blockHashsByDAAScores: { [daaScore: number]: string } = {};
 
     constructor(replayData: ReplayData) {
         this.replayData = replayData;
@@ -65,7 +66,7 @@ export default class ReplayDataSource implements DataSource {
 
         let maxParentHeight = -1;
         for (let parentId of nextReplayBlock.parentIds) {
-            const parentHeight = this.blockIdsToHeights[parentId];
+            const parentHeight = this.blockHashsToHeights[parentId];
             if (parentHeight > maxParentHeight) {
                 maxParentHeight = parentHeight;
             }
@@ -81,36 +82,37 @@ export default class ReplayDataSource implements DataSource {
             };
         }
 
-        const blockId = nextReplayBlock.id;
-        const blockHash = `${blockId}`.repeat(8);
+        // const blockId = nextReplayBlock.id;
+        // const blockHash = `${blockId}`.repeat(8);
+        const blockHash = nextReplayBlock.blockHash;
         const heightGroupIndex = dataAtHeight.blocks.length;
 
         this.dataAtHeight[height] = dataAtHeight;
-        this.blockIdsToHeights[blockId] = height;
+        this.blockHashsToHeights[blockHash] = height;
 
         dataAtHeight.blocks.push({
-            id: blockId,
+            // id: blockId,
             blockHash: blockHash,
             timestamp: this.currentReplayBlockIndex * this.replayData.blockInterval,
-            parentIds: nextReplayBlock.parentIds,
+            parentHashs: nextReplayBlock.parentIds,
             height: height,
             daaScore: height,
             heightGroupIndex: heightGroupIndex,
-            selectedParentId: nextReplayBlock.selectedParentId,
+            selectedParentHash: nextReplayBlock.selectedParentHash,
             color: nextReplayBlock.color,
             isInVirtualSelectedParentChain: nextReplayBlock.isInVirtualSelectedParentChain,
             mergeSetRedIds: nextReplayBlock.mergeSetRedIds,
             mergeSetBlueIds: nextReplayBlock.mergeSetBlueIds,
         });
 
-        for (let parentId of nextReplayBlock.parentIds) {
-            const parentHeight = this.blockIdsToHeights[parentId];
+        for (let parentHash of nextReplayBlock.parentIds) {
+            const parentHeight = this.blockHashsToHeights[parentHash];
             const parentDataAtHeight = this.dataAtHeight[parentHeight];
-            const parentHeightGroupIndex = parentDataAtHeight.blocks.findIndex(block => block.id === parentId);
+            const parentHeightGroupIndex = parentDataAtHeight.blocks.findIndex(block => block.blockHash === parentHash);
 
             const nextEdge: Edge = {
-                fromBlockId: blockId,
-                toBlockId: parentId,
+                fromBlockHash: blockHash,
+                toBlockHash: parentHash,
                 fromHeight: height,
                 toHeight: parentHeight,
                 fromHeightGroupIndex: heightGroupIndex,
@@ -123,18 +125,18 @@ export default class ReplayDataSource implements DataSource {
             }
         }
 
-        this.blockHashesByIds[blockId] = blockHash;
-        this.blockIdsByHashes[blockHash] = blockId;
+        // this.blockHashesByIds[blockId] = blockHash;
+        // this.blockIdsByHashes[blockHash] = blockId;
 
-        this.currentReplayBlockIndex++;
+        this.currentReplayBlockIndex ++;
     }
 
     private reset = () => {
         this.currentReplayBlockIndex = 0;
-        this.blockIdsToHeights = {};
+        this.blockHashsToHeights = {};
         this.dataAtHeight = {};
-        this.blockHashesByIds = {};
-        this.blockIdsByHashes = {};
+        // this.blockHashesByIds = {};
+        // this.blockIdsByHashes = {};
     }
 
     getTickIntervalInMilliseconds = (): number => {
@@ -155,7 +157,7 @@ export default class ReplayDataSource implements DataSource {
 
         const seenEdges: { [edgeKey: string]: boolean } = {};
         const pushEdge = (edge: Edge) => {
-            const edgeKey = `${edge.fromBlockId}-${edge.toBlockId}`;
+            const edgeKey = `${edge.fromBlockHash}-${edge.toBlockHash}`;
             if (seenEdges[edgeKey]) {
                 return;
             }
@@ -200,17 +202,24 @@ export default class ReplayDataSource implements DataSource {
     };
 
     getBlockHash = async (targetHash: string, heightDifference: number): Promise<BlocksAndEdgesAndHeightGroups | void> => {
-        const targetId = this.blockIdsByHashes[targetHash];
-        const startHeight = targetId - heightDifference;
-        const endHeight = targetId + heightDifference;
-
+        // const targetId = this.blockIdsByHashes[targetHash];
+        // const startHeight = targetId - heightDifference;
+        // const endHeight = targetId + heightDifference;
+        const targetHeight = this.blockHashsToHeights[targetHash];
+        const startHeight = targetHeight - heightDifference;
+        const endHeight = targetHeight + heightDifference;
         return this.getBlocksBetweenHeights(startHeight, endHeight);
     };
 
     getBlockDAAScore = async (targetDAAScore: number, heightDifference: number): Promise<BlocksAndEdgesAndHeightGroups | void> => {
-        const targetId = this.blockIdsByDAAScores[targetDAAScore];
-        const startHeight = targetId - heightDifference;
-        const endHeight = targetId + heightDifference;
+        // const targetId = this.blockHashsByDAAScores[targetDAAScore];
+        // const startHeight = targetId - heightDifference;
+        // const endHeight = targetId + heightDifference;
+        const targetHash = this.blockHashsByDAAScores[targetDAAScore];
+        const targetHeight = this.blockHashsToHeights[targetHash];
+        const startHeight = targetHeight - heightDifference;
+        const endHeight = targetHeight + heightDifference;
+        return this.getBlocksBetweenHeights(startHeight, endHeight);
 
         return this.getBlocksBetweenHeights(startHeight, endHeight);
     };
@@ -220,17 +229,18 @@ export default class ReplayDataSource implements DataSource {
         return this.getBlocksBetweenHeights(dataLength - heightDifference, dataLength);
     };
 
-    getBlockHashesByIds = async (blockIdsString: string): Promise<BlockHashById[] | void> => {
-        const blockIdStrings = blockIdsString.split(",");
-        const blockHashesByIds: BlockHashById[] = [];
-        for (let blockIdString of blockIdStrings) {
-            const blockId = parseInt(blockIdString);
-            blockHashesByIds.push({
-                id: blockId,
-                hash: this.blockHashesByIds[blockId],
-            });
-        }
-        return blockHashesByIds;
+    getBlockHashesByIds = async (_blockIdsString: string): Promise<BlockHashById[] | void> => {
+        // const blockIdStrings = blockIdsString.split(",");
+        // const blockHashesByIds: BlockHashById[] = [];
+        // for (let blockIdString of blockIdStrings) {
+        //     const blockId = parseInt(blockIdString);
+        //     blockHashesByIds.push({
+        //         id: blockId,
+        //         hash: this.blockHashesByIds[blockId],
+        //     });
+        // }
+        // return blockHashesByIds;
+        return []
     };
 
     getAppConfig = async (): Promise<AppConfig | void> => {

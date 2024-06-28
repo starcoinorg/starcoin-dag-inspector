@@ -1,7 +1,7 @@
 import * as PIXI from "pixi.js-legacy";
 import TimelineContainer from "./TimelineContainer";
 import {Block} from "../model/Block";
-import {getBlockChildIds} from "../model/BlocksAndEdgesAndHeightGroups"
+import {getBlockChildHashs} from "../model/BlocksAndEdgesAndHeightGroups"
 import {Ticker} from "@createjs/core";
 import {BlockInformation} from "../model/BlockInformation";
 import DataSource, {resolveDataSource} from "../data/DataSource";
@@ -30,7 +30,7 @@ export default class Dag {
     private blockClickedListener: (blockInformation: Block) => void;
     private appConfigChangedListener: (appConfig: AppConfig) => void;
 
-    private readonly blockHashesByIds: { [id: string]: string } = {};
+    private readonly blockByHashs: { [hash: string]: Block } = {};
 
     constructor() {
         this.appConfig = getDefaultAppConfig();
@@ -186,6 +186,8 @@ export default class Dag {
     }
 
     private resolveTickFunction = () => {
+        console.log("resolveTickFunction | Entered");
+
         const urlParams = new URLSearchParams(window.location.search);
 
         this.targetHeight = null;
@@ -197,6 +199,7 @@ export default class Dag {
             if (height || height === 0) {
                 this.targetHeight = height;
                 this.currentTickFunction = this.trackTargetHeight;
+                console.log("resolveTickFunction | Exited, height || height === 0, height：{}", height);
                 return;
             }
         }
@@ -207,6 +210,7 @@ export default class Dag {
             if (daaScore || daaScore === 0) {
                 this.targetDAAScore = daaScore;
                 this.currentTickFunction = this.trackTargetDAAScore;
+                console.log("resolveTickFunction | Exited, daaScore || daaScore === 0, daaScore：{}", daaScore);
                 return;
             }
         }
@@ -215,9 +219,11 @@ export default class Dag {
         if (hash) {
             this.targetHash = hash.toLowerCase();
             this.currentTickFunction = this.trackTargetHash;
-            return
+            console.log("resolveTickFunction | Exited, hash not null, targetHash：{}", this.targetHash);
+            return;
         }
 
+        console.log("resolveTickFunction | Exited Normal");
         this.currentTickFunction = this.trackHead;
     }
 
@@ -226,6 +232,8 @@ export default class Dag {
     }
 
     private trackTargetHeight = async () => {
+        console.log("trackTargetHeight | Entered");
+
         const targetHeight = this.targetHeight as number;
         this.timelineContainer!.setTargetHeight(targetHeight);
         this.timelineContainer!.setTargetBlock(null);
@@ -237,13 +245,18 @@ export default class Dag {
 
         // Exit early if the request failed
         if (!blocksAndEdgesAndHeightGroups) {
+            console.log("trackTargetHeight | Exited, blocksAndEdgesAndHeightGroups == null");
             return;
         }
-        this.cacheBlockHashes(blocksAndEdgesAndHeightGroups.blocks);
+        // this.cacheBlockHashes(blocksAndEdgesAndHeightGroups.blocks);
 
         // Exit early if the track function or the target
         // height changed while we were busy fetching data
         if (this.currentTickFunction !== this.trackTargetHeight || this.targetHeight !== targetHeight) {
+            console.log("trackTargetHeight | Exited, this.currentTickFunction !== this.trackTargetHeight || this.targetHeight !== targetHeight, this.targetHeight: {}, targetHeight: {}",
+                this.targetHeight,
+                targetHeight
+            );
             return;
         }
 
@@ -252,6 +265,8 @@ export default class Dag {
     }
 
     private trackTargetDAAScore = async () => {
+        console.log("trackTargetDAAScore | Entered");
+
         const targetDAAScore = this.targetDAAScore as number;
         this.timelineContainer!.setTargetDAAScore(targetDAAScore);
         this.timelineContainer!.setTargetBlock(null);
@@ -263,21 +278,28 @@ export default class Dag {
 
         // Exit early if the request failed
         if (!blocksAndEdgesAndHeightGroups) {
+            console.log("blocksAndEdgesAndHeightGroups | Exited, blocksAndEdgesAndHeightGroups == null");
             return;
         }
-        this.cacheBlockHashes(blocksAndEdgesAndHeightGroups.blocks);
+        // this.cacheBlockHashes(blocksAndEdgesAndHeightGroups.blocks);
 
         // Exit early if the track function or the target
         // height changed while we were busy fetching data
         if (this.currentTickFunction !== this.trackTargetDAAScore || this.targetDAAScore !== targetDAAScore) {
+            console.log("blocksAndEdgesAndHeightGroups | Exited, this.currentTickFunction !== this.trackTargetDAAScore || this.targetDAAScore !== targetDAAScore, this.targetDAAScore: {}, targetDAAScore: {}",
+                this.targetDAAScore, targetDAAScore);
             return;
         }
 
         this.timelineContainer!.setBlocksAndEdgesAndHeightGroups(blocksAndEdgesAndHeightGroups);
         this.timelineContainer!.setTargetDAAScore(targetDAAScore);
+
+        console.log("blocksAndEdgesAndHeightGroups | Exited, targetDAAScore: {}", targetDAAScore);
     }
 
     private trackTargetHash = async () => {
+        console.log("trackTargetHash | Entered");
+
         const targetHash = this.targetHash as string;
 
         // Immediately update the timeline container if it already
@@ -297,13 +319,18 @@ export default class Dag {
 
         // Exit early if the request failed
         if (!blocksAndEdgesAndHeightGroups) {
+            console.log("trackTargetHash | Exited, blocksAndEdgesAndHeightGroups == null");
             return;
         }
-        this.cacheBlockHashes(blocksAndEdgesAndHeightGroups.blocks);
+        // this.cacheBlockHashes(blocksAndEdgesAndHeightGroups.blocks);
 
         // Exit early if the track function or the target
         // hash changed while we were busy fetching data
         if (this.currentTickFunction !== this.trackTargetHash || this.targetHash !== targetHash) {
+            console.log("trackTargetHash | Exited, this.currentTickFunction !== this.trackTargetHash || this.targetHash !== targetHash, this.targetHash: {}, targetHash: {}",
+                this.targetHash,
+                targetHash,
+            );
             return;
         }
 
@@ -327,9 +354,12 @@ export default class Dag {
 
         const blockInformation = await this.buildBlockInformation(targetBlock);
         this.blockInformationChangedListener(blockInformation);
+
+        console.log("trackTargetHash | exited, targetBlock.height: {}", targetBlock.height);
     }
 
     private trackHead = async () => {
+        console.log("trackHead | Entered");
         this.timelineContainer!.setTargetBlock(null);
         this.blockInformationChangedListener(null);
 
@@ -341,13 +371,15 @@ export default class Dag {
 
         // Exit early if the request failed
         if (!blocksAndEdgesAndHeightGroups) {
+            console.log("trackHead | Exited, blocksAndEdgesAndHeightGroups is null");
             return;
         }
-        this.cacheBlockHashes(blocksAndEdgesAndHeightGroups.blocks);
+        // this.cacheBlockHashes(blocksAndEdgesAndHeightGroups.blocks);
 
         // Exit early if the track function changed while we
         // were busy fetching data
         if (this.currentTickFunction !== this.trackHead) {
+            console.log("trackHead | Exited, this.currentTickFunction !== this.trackHead");
             return
         }
 
@@ -357,42 +389,46 @@ export default class Dag {
                 maxHeight = block.height;
             }
         }
-
         let targetHeight = Math.max(0, maxHeight - heightDifference);
 
         this.timelineContainer!.setTargetHeight(targetHeight, blocksAndEdgesAndHeightGroups);
         this.timelineContainer!.setBlocksAndEdgesAndHeightGroups(blocksAndEdgesAndHeightGroups);
+
+        console.log("trackHead | Exited, targetHeight: {}", targetHeight);
     }
 
-    private cacheBlockHashes = (blocks: Block[]) => {
-        for (let block of blocks) {
-            this.blockHashesByIds[block.id] = block.blockHash;
-        }
-    }
+    // private cacheBlockHashes = (blocks: Block[]) => {
+    //     for (let block of blocks) {
+    //         this.blockHashesByIds[block.blockHash] = block.blockHash;
+    //     }
+    // }
 
-    private getCachedBlockHashes = (blockIds: number[]): [string[], number[]] => {
+    private getCachedBlockHashes = (blockHashs: string[]): [string[], number[]] => {
         const foundBlockHashes: string[] = [];
         const notFoundBlockIds: number[] = [];
-        for (let blockId of blockIds) {
-            const blockHash = this.blockHashesByIds[blockId];
-            if (blockHash) {
-                foundBlockHashes.push(blockHash);
-            } else {
-                notFoundBlockIds.push(blockId);
-            }
+        for (let blockHash of blockHashs) {
+            foundBlockHashes.push(blockHash);
+            // const blockHash = this.blockHashesByIds[blockHash];
+            // if (blockHash) {
+            //     foundBlockHashes.push(blockHash);
+            // } else {
+            //     notFoundBlockIds.push(blockHash);
+            // }
         }
         return [foundBlockHashes, notFoundBlockIds];
     }
 
     private buildBlockInformation = async (block: Block): Promise<BlockInformation> => {
+        console.log("buildBlockInformation | Entered, block: {}", block);
+
         let notFoundIds: number[] = [];
 
-        let [parentHashes, notFoundParentIds] = this.getCachedBlockHashes(block.parentIds);
+        let [parentHashes, notFoundParentIds] = this.getCachedBlockHashes(block.parentHashs);
         notFoundIds = notFoundIds.concat(notFoundParentIds);
 
         let selectedParentHash = null;
-        if (block.selectedParentId) {
-            const [selectedParentHashes, notFoundSelectedParentIds] = this.getCachedBlockHashes([block.selectedParentId]);
+        if (block.selectedParentHash) {
+            const [selectedParentHashes, notFoundSelectedParentIds] = this.getCachedBlockHashes([block.selectedParentHash]);
             notFoundIds = notFoundIds.concat(notFoundSelectedParentIds);
 
             selectedParentHash = selectedParentHashes[0];
@@ -404,7 +440,7 @@ export default class Dag {
         let [mergeSetBlueHashes, notFoundMergeSetBlueIds] = this.getCachedBlockHashes(block.mergeSetBlueIds);
         notFoundIds = notFoundIds.concat(notFoundMergeSetBlueIds);
 
-        const [childIds, selectedChildId] = getBlockChildIds(this.timelineContainer!.gettBlocksAndEdgesAndHeightGroups()!, block);
+        const [childIds, selectedChildId] = getBlockChildHashs(this.timelineContainer!.gettBlocksAndEdgesAndHeightGroups()!, block);
         let [childHashes, notFoundChildIds] = this.getCachedBlockHashes(childIds);
         notFoundIds = notFoundIds.concat(notFoundChildIds);
 
@@ -414,41 +450,43 @@ export default class Dag {
             selectedChildHash = selectedChildHashes[0];
         }
 
-        if (notFoundIds.length > 0) {
-            const blockHashesByIds = await this.dataSource!.getBlockHashesByIds(notFoundIds.join(","));
-            if (blockHashesByIds) {
-                for (let blockHashById of blockHashesByIds) {
-                    // Feed the cache
-                    this.blockHashesByIds[blockHashById.id] = blockHashById.hash;
+        // if (notFoundIds.length > 0) {
+        //     const blockHashesByIds = await this.dataSource!.getBlockHashesByIds(notFoundIds.join(","));
+        //     if (blockHashesByIds) {
+        //         for (let blockHashById of blockHashesByIds) {
+        //             // Feed the cache
+        //             this.blockHashesByIds[blockHashById.id] = blockHashById.hash;
+        //
+        //             // Propagate the found hashes
+        //
+        //             if (notFoundParentIds.includes(blockHashById.id)) {
+        //                 parentHashes = parentHashes.concat(blockHashById.hash);
+        //             }
+        //
+        //             if (block.selectedParentHash === blockHashById.id) {
+        //                 selectedParentHash = blockHashById.hash;
+        //             }
+        //
+        //             if (notFoundMergeSetRedIds.includes(blockHashById.id)) {
+        //                 mergeSetBlueHashes = mergeSetBlueHashes.concat(blockHashById.hash);
+        //             }
+        //
+        //             if (notFoundMergeSetBlueIds.includes(blockHashById.id)) {
+        //                 mergeSetBlueHashes = mergeSetBlueHashes.concat(blockHashById.hash);
+        //             }
+        //
+        //             if (notFoundChildIds.includes(blockHashById.id)) {
+        //                 childHashes = childHashes.concat(blockHashById.hash);
+        //             }
+        //
+        //             if (selectedChildId === blockHashById.id) {
+        //                 selectedChildHash = blockHashById.hash;
+        //             }
+        //         }
+        //     }
+        // }
 
-                    // Propagate the found hashes
-
-                    if (notFoundParentIds.includes(blockHashById.id)) {
-                        parentHashes = parentHashes.concat(blockHashById.hash);
-                    }
-                    
-                    if (block.selectedParentId === blockHashById.id) {
-                        selectedParentHash = blockHashById.hash;
-                    }
-                    
-                    if (notFoundMergeSetRedIds.includes(blockHashById.id)) {
-                        mergeSetBlueHashes = mergeSetBlueHashes.concat(blockHashById.hash);
-                    }
-                    
-                    if (notFoundMergeSetBlueIds.includes(blockHashById.id)) {
-                        mergeSetBlueHashes = mergeSetBlueHashes.concat(blockHashById.hash);
-                    }
-                    
-                    if (notFoundChildIds.includes(blockHashById.id)) {
-                        childHashes = childHashes.concat(blockHashById.hash);
-                    }
-                    
-                    if (selectedChildId === blockHashById.id) {
-                        selectedChildHash = blockHashById.hash;
-                    }
-                }
-            }
-        }
+        console.log("buildBlockInformation | Exited");
 
         return {
             block: block,
@@ -464,10 +502,12 @@ export default class Dag {
     }
 
     private handleBlockClicked = (block: Block) => {
+        console.log("handleBlockClicked | Entered, block: {}", block);
         this.blockClickedListener(block);
         this.timelineContainer!.setTargetHeight(block.height);
         this.blockClickedListener(block);
         this.setStateTrackTargetBlock(block);
+        console.log("handleBlockClicked | Exited");
     }
 
     private handleDAAScoreClicked = (daaScore: number) => {

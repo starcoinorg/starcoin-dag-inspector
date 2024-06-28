@@ -14,9 +14,11 @@ const resolveAddress = (environmentVariableName: string): string => {
 const apiAddress = resolveAddress("REACT_APP_API_ADDRESS");
 const explorerAddress = resolveAddress("REACT_APP_EXPLORER_ADDRESS");
 const starcoinLiveAddress = resolveAddress("REACT_APP_STARCOIN_LIVE_ADDRESS");
+const starcoinNetwork = process.env["REACT_APP_STARCOIN_NETWORK"];
 
 export {
     apiAddress,
     explorerAddress,
     starcoinLiveAddress,
+    starcoinNetwork,
 };
