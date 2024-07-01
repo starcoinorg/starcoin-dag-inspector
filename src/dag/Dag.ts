@@ -365,9 +365,16 @@ export default class Dag {
 
         const maxBlockAmountOnHalfTheScreen = this.timelineContainer!.getMaxBlockAmountOnHalfTheScreen();
 
+        console.log("trackHead | maxBlockAmountOnHalfTheScreen " + maxBlockAmountOnHalfTheScreen);
+
         const heightDifference = this.timelineContainer!.getVisibleSlotAmountAfterHalfTheScreen(theme.components.dag.headMinRightMargin);
         const blocksAndEdgesAndHeightGroups = await this.dataSource!.getHead(maxBlockAmountOnHalfTheScreen + heightDifference);
         this.isFetchFailingListener(!blocksAndEdgesAndHeightGroups);
+
+        console.log("trackHead |" +
+            " maxBlockAmountOnHalfTheScreen " + maxBlockAmountOnHalfTheScreen + ", " +
+            " heightDifference " + heightDifference
+        );
 
         // Exit early if the request failed
         if (!blocksAndEdgesAndHeightGroups) {
