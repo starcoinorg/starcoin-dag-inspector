@@ -8,6 +8,7 @@ import ContentTooltip from "./block-information/tooltip/Content";
 import { explorerAddress } from "../../addresses";
 import { BlockInformation as BlockInformationModel } from "../../model/BlockInformation";
 import React from "react";
+import { starcoinNetwork } from "../../addresses";
 
 const InfoDivider = () => <Divider sx={{backgroundColor: 'text.secondary', mt: '4px', mb: '4px'}}/>
 
@@ -37,9 +38,9 @@ const BlockInformation = React.forwardRef<typeof Box, BlockInformationProps>(
     }
 
     // Adapt URL to katnip or explorer
-    const blockFolder = explorerAddress.includes('katnip') ? `block` : `blocks`;
+    // const blockFolder = explorerAddress.includes('katnip') ? `block` : `blocks`;
     
-    const explorerAddressForBlock = `${explorerAddress}/${blockFolder}/${blockInformation.block.blockHash}`;
+    const explorerAddressForBlock = `${explorerAddress}/${starcoinNetwork}/blocks/detail/${blockInformation.block.blockHash}`;
 
     let blockColorText = "Undecided";
     let blockColorClass: BlockColor = "gray";
