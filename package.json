@@ -1,8 +1,11 @@
 {
-  "name": "web",
+  "name": "starcoin-dag-inspector",
   "version": "0.1.19",
   "private": true,
   "homepage": ".",
+  "engines": {
+    "node": "16.x"
+  },
   "dependencies": {
     "@createjs/core": "2.0.0-beta.4",
     "@createjs/tweenjs": "2.0.0-beta.4",
