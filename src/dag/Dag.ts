@@ -276,7 +276,7 @@ export default class Dag {
 
         // Exit early if the request failed
         if (!blocksAndEdgesAndHeightGroups) {
-            console.log("blocksAndEdgesAndHeightGroups | Exited, blocksAndEdgesAndHeightGroups == null");
+            console.log("trackTargetDAAScore | Exited, blocksAndEdgesAndHeightGroups == null");
             return;
         }
         // this.cacheBlockHashes(blocksAndEdgesAndHeightGroups.blocks);
@@ -284,7 +284,7 @@ export default class Dag {
         // Exit early if the track function or the target
         // height changed while we were busy fetching data
         if (this.currentTickFunction !== this.trackTargetDAAScore || this.targetDAAScore !== targetDAAScore) {
-            console.log("blocksAndEdgesAndHeightGroups | Exited, this.currentTickFunction !== this.trackTargetDAAScore || this.targetDAAScore !== targetDAAScore," +
+            console.log("trackTargetDAAScore | Exited, this.currentTickFunction !== this.trackTargetDAAScore || this.targetDAAScore !== targetDAAScore," +
                 " this.targetDAAScore: " + this.targetDAAScore +
                 " targetDAAScore " + targetDAAScore
             );
@@ -294,7 +294,7 @@ export default class Dag {
         this.timelineContainer!.setBlocksAndEdgesAndHeightGroups(blocksAndEdgesAndHeightGroups);
         this.timelineContainer!.setTargetDAAScore(targetDAAScore);
 
-        console.log("blocksAndEdgesAndHeightGroups | Exited, targetDAAScore: " + targetDAAScore);
+        console.log("trackTargetDAAScore | Exited, targetDAAScore: " + targetDAAScore);
     }
 
     private trackTargetHash = async () => {
