@@ -15,19 +15,9 @@ spec:
     spec:
       containers:
         - name: react-app
-          image: starcoin/starcoin_explorer:latest
+          image: starcoin/starcoin_dag_inspector:latest
           ports:
             - containerPort: 80
-          env:
-            - name: REACT_APP_API_URL
-              value: https://doapi.stcscan.io/v2/dag-inspector
-            - name: REACT_APP_EXPLORER_ADDRESS
-              value: https://do.stcscan.io
-            - name: REACT_APP_STARCOIN_LIVE_ADDRESS
-              value: https://do.stcscan.io
-            - name: REACT_APP_SUPPORT_STARCOIN_NETWORK
-              value: main,barnard,proxima,halley,vega
-
 ---
 apiVersion: v1
 kind: Service
@@ -39,6 +29,6 @@ spec:
   ports:
     - port: 80
       targetPort: 80
-      nodePort: 33000
+      nodePort: 31100
   selector:
     app: starcoin-dag-inspector
