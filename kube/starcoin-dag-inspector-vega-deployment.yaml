@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: starcoin-dag-inspector-deployment
+  namespace: starcoin-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: starcoin-dag-inspector
+  template:
+    metadata:
+      labels:
+        app: starcoin-dag-inspector
+    spec:
+      containers:
+        - name: react-app
+          image: starcoin/starcoin_explorer:latest
+          ports:
+            - containerPort: 80
+          env:
+            - name: REACT_APP_API_URL
+              value: https://doapi.stcscan.io/v2/dag-inspector
+            - name: REACT_APP_EXPLORER_ADDRESS
+              value: https://do.stcscan.io
+            - name: REACT_APP_STARCOIN_LIVE_ADDRESS
+              value: https://do.stcscan.io
+            - name: REACT_APP_SUPPORT_STARCOIN_NETWORK
+              value: main,barnard,proxima,halley,vega
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: starcoin-dag-inspector-service
+  namespace: starcoin-client
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 33000
+  selector:
+    app: starcoin-dag-inspector
