@@ -11,23 +11,61 @@ const resolveAddress = (environmentVariableName: string): string => {
     return `${prefix}${address}`;
 };
 
-function getNetworkFromURL(): string {
-    const url = new URL(window.location.href);
+const resovedSupprotedNetworks = (environmentVariableName: string): string[] => {
+    const arrayString = process.env[environmentVariableName] || '';
+    // @ts-ignore
+    const supportedNetworks = arrayString.split(',');
+    if (!supportedNetworks) {
+        throw new Error("The REACT_APP_SUPPORT_STARCOIN_NETWORK environment variable is required");
+    }
+    return supportedNetworks
+}
+function isValidIpAddress(input: string): boolean {
+    const parts = input.split('.');
+    if (parts.length !== 4) {
+        return false;
+    }
+    for (const part of parts) {
+        if (!/^\d+$/.test(part)) {
+            return false;
+        }
+        const num = parseInt(part, 10);
+        if (num < 0 || num > 255) {
+            return false;
+        }
+
+        if (part.length > 1 && part[0] === '0') {
+            return false;
+        }
+    }
+    return true;
+}
+
+function resolveNetworkFromFullURL(fullUrl: string, inputSupportedNetworks: string[], defaultNetwork: string): string | null {
+    const url = new URL(fullUrl);
+    if (isValidIpAddress(url.hostname)) {
+        return defaultNetwork;
+    }
     const hostnameParts = url.hostname.split('.');
     // Assuming the first part of the hostname is the network
-    return hostnameParts[0];
+    const network = hostnameParts[0];
+    return inputSupportedNetworks.includes(network) ? network : null;
 }
+
+const defaultNetwork : string = "vega";
 
 const apiAddress = resolveAddress("REACT_APP_API_ADDRESS");
 const explorerAddress = resolveAddress("REACT_APP_EXPLORER_ADDRESS");
-const starcoinLiveAddress = resolveAddress("REACT_APP_STARCOIN_LIVE_ADDRESS");
-const starcoinNetwork = getNetworkFromURL();
-const supportedNetworks = (process.env["REACT_APP_SUPPORT_STARCOIN_NETWORK"] || '').split(',');
+// @ts-ignore
+const starcoinNetwork = resolveNetworkFromFullURL(
+    window.location.href,
+    resovedSupprotedNetworks("REACT_APP_SUPPORT_STARCOIN_NETWORK"),
+    defaultNetwork,
+);
 
 export {
     apiAddress,
     explorerAddress,
-    starcoinLiveAddress,
     starcoinNetwork,
-    supportedNetworks,
+    defaultNetwork,
 };
