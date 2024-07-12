@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: react-app
-          image: starcoin/starcoin_dag_inspector:v0.0.3
+          image: starcoin/starcoin_dag_inspector:latest
           ports:
             - containerPort: 80
 ---
