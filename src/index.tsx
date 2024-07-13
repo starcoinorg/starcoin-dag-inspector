@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
-import {defaultNetwork, starcoinNetwork} from "./addresses";
+import {combinendNetworkIntoFullURL, defaultNetwork, starcoinNetwork} from "./addresses";
 
 function parseBoolean(value: string | undefined, defaultValue: boolean): boolean {
     if (value) {
@@ -11,22 +11,10 @@ function parseBoolean(value: string | undefined, defaultValue: boolean): boolean
     return defaultValue;
 }
 
-function maybeSelectDefaultNetwork(fullUrl: string | null, selectedNetwork: string | null) {
-    // @ts-ignore
-    const url = new URL(fullUrl);
-    if (!selectedNetwork) {
-        url.hostname = `${defaultNetwork}.${url.hostname}`;
-        return url.toString();
-    }
-    return null;
-}
 
-const redirect_url = maybeSelectDefaultNetwork(window.location.href.toString(), starcoinNetwork);
-if (redirect_url) {
-    console.log("new url: " + redirect_url);
-    window.location.href = redirect_url;
+if (!starcoinNetwork) {
+    window.location.href = combinendNetworkIntoFullURL(window.location.href.toString(), defaultNetwork);
 }
-
 
 const target = document.getElementById('kgi-root') as HTMLDivElement | null;
 if (target) {

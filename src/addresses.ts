@@ -20,6 +20,7 @@ const resovedSupprotedNetworks = (environmentVariableName: string): string[] => 
     }
     return supportedNetworks
 }
+
 function isValidIpAddress(input: string): boolean {
     const parts = input.split('.');
     if (parts.length !== 4) {
@@ -46,13 +47,30 @@ function resolveNetworkFromFullURL(fullUrl: string, inputSupportedNetworks: stri
     if (isValidIpAddress(url.hostname)) {
         return defaultNetwork;
     }
+
     const hostnameParts = url.hostname.split('.');
+    if (hostnameParts.length <= 2) {
+        return defaultNetwork;
+    }
+
     // Assuming the first part of the hostname is the network
-    const network = hostnameParts[0];
-    return inputSupportedNetworks.includes(network) ? network : null;
+    const firstPart = hostnameParts[0];
+    const network = firstPart.split('-')[0];
+    return network ? (inputSupportedNetworks.includes(network) ? network : null) : null;
 }
 
-const defaultNetwork : string = "vega";
+function combinendNetworkIntoFullURL(originUrl: string, network: string): string {
+    const url = new URL(originUrl);
+    const splited = url.hostname.split('.');
+    if (splited.length <= 2) {
+        url.hostname = `${network}-sgi.${url.hostname}`;
+    } else {
+        url.hostname = `${network}-${url.hostname}`;
+    }
+    return url.toString();
+}
+
+const defaultNetwork: string = "vega";
 
 const apiAddress = resolveAddress("REACT_APP_API_ADDRESS");
 const explorerAddress = resolveAddress("REACT_APP_EXPLORER_ADDRESS");
@@ -68,4 +86,5 @@ export {
     explorerAddress,
     starcoinNetwork,
     defaultNetwork,
+    combinendNetworkIntoFullURL
 };
